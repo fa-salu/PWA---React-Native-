@@ -196,11 +196,12 @@ function AppContent(): JSX.Element {
         case "ORIENTATION_CHANGED":
           console.log("Orientation changed:", data.data);
           break;
-        // Handle print-related messages
         case "PRINT_DATA":
         case "SHARE_DATA":
         case "DOWNLOAD_DATA":
         case "THERMAL_PRINT_DATA":
+        case "DOWNLOAD_PDF":
+        case "DOWNLOAD_EXCEL":
           printHandler.handleMessage(event);
           break;
         default:

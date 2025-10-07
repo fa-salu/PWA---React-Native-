@@ -68,11 +68,238 @@ export class PrintHandler {
         case "ORIENTATION_CHANGED":
           console.log("Orientation changed:", data.data);
           break;
+        case "DOWNLOAD_PDF":
+          console.log("Handling direct PDF download:", data.data.fileName);
+          this.handleDirectPDFDownload(data.data);
+          break;
+        case "DOWNLOAD_EXCEL":
+          console.log("Handling Excel download:", data.data.fileName);
+          this.handleExcelDownload(data.data);
+          break;
         default:
           console.log("Unknown message type:", data.type);
       }
     } catch (error) {
       console.warn("Print Handler - Message parsing error:", error);
+    }
+  };
+
+  private handleExcelDownload = async (data: any) => {
+    try {
+      const { url, fileName, headers } = data;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          ...headers,
+          Accept:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const base64Data = await this.blobToBase64(blob);
+
+      const fileUri = FileSystem.documentDirectory + fileName;
+      await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      Alert.alert("Excel File Ready", `File created: ${fileName}`, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Share",
+          onPress: () => shareAsync(fileUri),
+        },
+        {
+          text: "Download",
+          onPress: () => this.downloadExcelToDeviceStorage(fileUri, fileName),
+        },
+      ]);
+    } catch (error) {
+      console.error("Excel download error:", getErrorMessage(error));
+      Alert.alert("Download Error", "Failed to download Excel file");
+    }
+  };
+
+  private downloadExcelToDeviceStorage = async (
+    fileUri: string,
+    fileName: string
+  ) => {
+    try {
+      if (Platform.OS === "android") {
+        let directoryUri = this.savedDirectoryUri;
+
+        if (!directoryUri) {
+          const permissions =
+            await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+          if (!permissions.granted) {
+            Alert.alert(
+              "Permission Denied",
+              "Cannot save file without storage access"
+            );
+            return;
+          }
+
+          directoryUri = permissions.directoryUri;
+          this.savedDirectoryUri = directoryUri;
+        }
+
+        const downloadFileUri =
+          await FileSystem.StorageAccessFramework.createFileAsync(
+            directoryUri,
+            fileName,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          );
+
+        const fileContent = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await FileSystem.writeAsStringAsync(downloadFileUri, fileContent, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        Alert.alert(
+          "Download Complete",
+          `Excel file saved to Downloads:\n${fileName}`
+        );
+      } else {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status === "granted") {
+          await MediaLibrary.saveToLibraryAsync(fileUri);
+          Alert.alert(
+            "Download Complete",
+            `Excel file saved to Files:\n${fileName}`
+          );
+        } else {
+          Alert.alert(
+            "Permission Required",
+            "Need file system permission to save files"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Download to storage error:", getErrorMessage(error));
+      Alert.alert(
+        "Download Failed",
+        "Could not save Excel file to Downloads folder"
+      );
+    }
+  };
+
+  private blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  private handleDirectPDFDownload = async (data: any) => {
+    try {
+      const { pdfData, fileName } = data;
+
+      const base64Data = pdfData.includes(",")
+        ? pdfData.split(",")[1]
+        : pdfData;
+
+      const fileUri = FileSystem.documentDirectory + fileName;
+
+      await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      Alert.alert("PDF Generated", `File created: ${fileName}`, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Share",
+          onPress: () => shareAsync(fileUri),
+        },
+        {
+          text: "Download",
+          onPress: () => this.downloadToDeviceStorage(fileUri, fileName),
+        },
+      ]);
+    } catch (error) {
+      console.error("PDF download error:", getErrorMessage(error));
+      Alert.alert("Download Error", "Failed to download PDF");
+    }
+  };
+
+  private downloadToDeviceStorage = async (
+    fileUri: string,
+    fileName: string
+  ) => {
+    try {
+      if (Platform.OS === "android") {
+        let directoryUri = this.savedDirectoryUri;
+
+        if (!directoryUri) {
+          const permissions =
+            await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+          if (!permissions.granted) {
+            Alert.alert(
+              "Permission Denied",
+              "Cannot save file without storage access"
+            );
+            return;
+          }
+
+          directoryUri = permissions.directoryUri;
+          this.savedDirectoryUri = directoryUri;
+          console.log("Directory permission granted and saved");
+        }
+
+        const downloadFileUri =
+          await FileSystem.StorageAccessFramework.createFileAsync(
+            directoryUri,
+            fileName,
+            "application/pdf"
+          );
+
+        const pdfContent = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await FileSystem.writeAsStringAsync(downloadFileUri, pdfContent, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        Alert.alert(
+          "Download Complete",
+          `PDF saved to Downloads:\n${fileName}`
+        );
+        console.log("PDF downloaded to Downloads folder successfully");
+      } else {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status === "granted") {
+          await MediaLibrary.saveToLibraryAsync(fileUri);
+          Alert.alert(
+            "Download Complete",
+            `PDF saved to Photos/Files:\n${fileName}`
+          );
+        } else {
+          Alert.alert(
+            "Permission Required",
+            "Need photo library permission to save files"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Download to storage error:", getErrorMessage(error));
+      Alert.alert("Download Failed", "Could not save PDF to Downloads folder");
     }
   };
 

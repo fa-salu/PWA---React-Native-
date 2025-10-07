@@ -25,7 +25,8 @@
       "package": "com.fasalurahman.goldensignature",
       "permissions": [
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_EXTERNAL_STORAGE"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_NETWORK_STATE"
       ]
     },
     "web": {
