@@ -4,12 +4,7 @@
     "slug": "goldensignature",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.jpg",
-    "splash": {
-      "image": "./assets/splash-icon.jpg",
-      "resizeMode": "cover",
-      "backgroundColor": "#000000"
-    },
+
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
@@ -19,7 +14,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.jpg",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "backgroundImage": "./assets/splash-icon.jpg"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -44,6 +40,15 @@
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos",
           "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos to your device",
           "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.jpg",
+          "imageWidth": "100%",
+          "resizeMode": "cover",
+          "backgroundColor": "#ffffff"
         }
       ]
     ],
