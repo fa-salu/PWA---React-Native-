@@ -8,6 +8,8 @@ import {
   Alert,
   BackHandler,
   Platform,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -181,7 +183,6 @@ function AppContent(): JSX.Element {
   true;
 `;
 
-  // Updated message handler to use print handler
   const handleMessage = (event: WebViewMessageEvent): void => {
     console.log("eventtt", event);
 
@@ -218,8 +219,20 @@ function AppContent(): JSX.Element {
 
   const LoadingComponent = (): JSX.Element => (
     <View style={styles.loadingContainer}>
-      <Text style={styles.loadingText}>Loading Golden ERP...</Text>
-      <Text style={styles.loadingSubtext}>Please wait</Text>
+      <View style={styles.loadingContent}>
+        <ActivityIndicator size="large" color="#1976D2" />
+        <Text style={styles.loadingText}>Loading Golden ERP...</Text>
+        <Text style={styles.loadingSubtext}>Please wait</Text>
+      </View>
+
+      <View style={styles.logoContainer}>
+        <Image
+          source={require("./assets/adaptive-icon.png")}
+          style={styles.companyLogo}
+          resizeMode="contain"
+        />
+        <Text style={styles.companyText}>Golden Signature Trading</Text>
+      </View>
     </View>
   );
 
@@ -229,11 +242,22 @@ function AppContent(): JSX.Element {
     errorDesc: string
   ): JSX.Element => (
     <View style={styles.errorContainer}>
-      <Text style={styles.errorText}>Connection Error</Text>
-      <Text style={styles.errorDesc}>{errorDesc}</Text>
-      <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
-        <Text style={styles.retryButtonText}>Retry</Text>
-      </TouchableOpacity>
+      <View style={styles.errorContent}>
+        <Text style={styles.errorText}>Connection Error</Text>
+        <Text style={styles.errorDesc}>{errorDesc}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.logoContainer}>
+        <Image
+          source={require("./assets/adaptive-icon.png")}
+          style={styles.companyLogo}
+          resizeMode="contain"
+        />
+        <Text style={styles.companyText}>Golden Signature Trading</Text>
+      </View>
     </View>
   );
 
@@ -287,8 +311,20 @@ function AppContent(): JSX.Element {
 
       {isLoading && (
         <View style={styles.loadingOverlay}>
-          <Text style={styles.loadingText}>Loading Goldens ERP...</Text>
-          <Text style={styles.loadingSubtext}>Connecting to server...</Text>
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color="#1976D2" />
+            <Text style={styles.loadingText}>Loading Golden ERP...</Text>
+            <Text style={styles.loadingSubtext}>Connecting to server...</Text>
+          </View>
+
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("./assets/adaptive-icon.png")}
+              style={styles.companyLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.companyText}>Golden Signature Trading</Text>
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -362,12 +398,21 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
   },
+
   loadingContainer: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+
+  loadingContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
   },
+
   loadingOverlay: {
     position: "absolute",
     top: 0,
@@ -375,32 +420,45 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(255, 255, 255, 0.95)",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
+    paddingVertical: 40,
   },
+
   loadingText: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#1976D2",
     marginBottom: 8,
+    marginTop: 20,
   },
+
   loadingSubtext: {
     fontSize: 14,
     color: "#666",
   },
+
   errorContainer: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+  },
+
+  errorContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 20,
   },
+
   errorText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#d32f2f",
     marginBottom: 10,
   },
+
   errorDesc: {
     fontSize: 14,
     color: "#666",
@@ -408,6 +466,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 20,
   },
+
   retryButton: {
     backgroundColor: "#1976D2",
     paddingHorizontal: 24,
@@ -425,9 +484,28 @@ const styles = StyleSheet.create({
       },
     }),
   },
+
   retryButtonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+
+  logoContainer: {
+    alignItems: "center",
+    paddingBottom: 20,
+  },
+
+  companyLogo: {
+    width: 50,
+    height: 50,
+    marginBottom: 8,
+  },
+
+  companyText: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
