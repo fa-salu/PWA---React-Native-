@@ -227,7 +227,7 @@
 
 //       <View style={styles.logoContainer}>
 //         <Image
-//           source={require("./assets/adaptive-icon.png")}
+//           source={require("./assets/adaptive-icon.jpg")}
 //           style={styles.companyLogo}
 //           resizeMode="contain"
 //         />
@@ -252,7 +252,7 @@
 
 //       <View style={styles.logoContainer}>
 //         <Image
-//           source={require("./assets/adaptive-icon.png")}
+//           source={require("./assets/adaptive-icon.jpg")}
 //           style={styles.companyLogo}
 //           resizeMode="contain"
 //         />
@@ -319,7 +319,7 @@
 
 //           <View style={styles.logoContainer}>
 //             <Image
-//               source={require("./assets/adaptive-icon.png")}
+//               source={require("./assets/adaptive-icon.jpg")}
 //               style={styles.companyLogo}
 //               resizeMode="contain"
 //             />
@@ -742,7 +742,7 @@ function AppContent(): JSX.Element {
 
       <View style={styles.logoContainer}>
         <Image
-          source={require("./assets/adaptive-icon.png")}
+          source={require("./assets/adaptive-icon.jpg")}
           style={styles.companyLogo}
           resizeMode="contain"
         />
