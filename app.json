@@ -1,12 +1,18 @@
 {
   "expo": {
-    "name": "",
+    "name": "Golden Signature",
     "slug": "goldensignature",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+      "hideExponentText": true
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fasalurahman.goldensignature"
@@ -26,6 +32,11 @@
       "splits": {
         "abi": true,
         "density": true
+      },
+      "splash": {
+        "image": "./assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
       }
     },
     "web": {
