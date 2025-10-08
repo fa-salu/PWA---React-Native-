@@ -34,7 +34,7 @@
         "density": true
       },
       "splash": {
-        "image": "./assets/splash-screen.png",
+        "image": "./assets/splash-icon.png",
         "resizeMode": "contain",
         "backgroundColor": "#ffffff"
       }
