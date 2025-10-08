@@ -220,9 +220,7 @@ function AppContent(): JSX.Element {
   const LoadingComponent = (): JSX.Element => (
     <View style={styles.loadingContainer}>
       <View style={styles.loadingContent}>
-        <ActivityIndicator size="large" color="#1976D2" />
-        <Text style={styles.loadingText}>Loading Golden ERP...</Text>
-        <Text style={styles.loadingSubtext}>Please wait</Text>
+        <ActivityIndicator size="large" color="#000" />
       </View>
 
       <View style={styles.logoContainer}>
