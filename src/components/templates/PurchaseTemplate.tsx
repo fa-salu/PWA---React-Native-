@@ -4,8 +4,6 @@ export class PurchaseTemplate implements PDFTemplate {
   generateHTML(data: TemplateData): string {
     const { record, companyProfile, transactionHistory, activeView } = data;
 
-    console.log("data", data);
-
     // Calculate totals
     const historyTotal =
       transactionHistory?.history?.reduce(
@@ -33,317 +31,505 @@ export class PurchaseTemplate implements PDFTemplate {
     <style>
         body { 
             margin: 0; 
-            padding: 20px; 
-            font-family: Arial, sans-serif; 
-            font-size: 12px;
+            padding: 25px; 
+            font-family: Helvetica, Arial, sans-serif; 
+            font-size: 9px;
             color: #333;
+            position: relative;
         }
         @page { 
             margin: 0.5in; 
             size: A4; 
         }
+        
+        /* Watermark - matches PDF positioning */
+        .watermark {
+            position: fixed;
+            top: 40%;
+            left: 30%;
+            transform: rotate(-45deg);
+            font-size: 40px;
+            color: rgba(255, 0, 0, 0.25);
+            font-weight: 900;
+            text-transform: uppercase;
+            text-align: center;
+            z-index: 9999;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .content-container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Header - LEFT: Party Info (58%), RIGHT: Invoice Info (40%) */
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
         }
-        .supplier-info {
-            width: 60%;
+        .company-info {
+            width: 58%;
         }
-        .supplier-title {
-            font-size: 18px;
+        .company-title {
+            font-size: 12px;
             font-weight: bold;
-            color: #000;
-            margin-bottom: 8px;
-        }
-        .supplier-details {
-            font-size: 11px;
-            color: #666;
             margin-bottom: 4px;
+            color: #000;
+        }
+        .company-subtitle {
+            font-size: 9px;
+            color: #333;
+            margin-bottom: 2px;
         }
         .invoice-info {
             width: 40%;
+            align-items: flex-end;
             text-align: right;
         }
         .invoice-title {
-            font-size: 16px;
+            font-size: 12px;
             font-weight: bold;
-            border: 2px solid #000;
-            padding: 10px;
-            margin-bottom: 10px;
-            background-color: #f8f9fa;
+            margin-bottom: 6px;
+            color: #000;
+            text-align: right;
+            border: 1px solid #000;
+            padding: 6px;
         }
         .invoice-details {
-            font-size: 11px;
-            margin-bottom: 5px;
+            font-size: 9px;
+            margin-bottom: 2px;
+            text-align: right;
         }
+        
+        /* Section */
         .section {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
-        .bill-to {
-            padding: 15px;
+        
+        /* Bill To Container - Company Profile */
+        .bill-to-container {
+            padding: 8px;
             border: 1px solid #ddd;
-            margin-bottom: 20px;
-            background-color: #f9f9f9;
         }
-        .bill-to-title {
-            font-size: 14px;
+        .row {
+            display: flex;
+            margin-bottom: 3px;
+        }
+        .label {
+            width: 25%;
             font-weight: bold;
-            margin-bottom: 10px;
+            font-size: 9px;
             color: #000;
         }
+        .value {
+            width: 75%;
+            font-size: 9px;
+            color: #333;
+        }
+        
+        /* Items Table */
         .table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
+            border: 1px solid #000;
+            margin-top: 8px;
         }
         .table th, .table td {
             border: 1px solid #000;
-            padding: 8px;
+            padding: 5px 4px;
             text-align: center;
-            font-size: 10px;
+            font-size: 8px;
+            min-height: 18px;
+            vertical-align: middle;
         }
         .table th {
-            background-color: #e9ecef;
+            background-color: #e5e5e5;
             font-weight: bold;
             color: #000;
+            min-height: 20px;
         }
         .table tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
+            background-color: #fafafa;
         }
+        
+        /* Totals Container - Payment Section + Totals Table side by side */
         .totals-container {
             display: flex;
             justify-content: flex-end;
-            margin-top: 20px;
+            margin-top: 10px;
             gap: 20px;
         }
+        
+        /* Payment Section - LEFT side of totals */
         .payment-section {
-            width: 300px;
-            padding: 15px;
+            padding: 8px;
             border: 1px solid #ddd;
-            background-color: #f9f9f9;
-        }
-        .totals {
             width: 300px;
+        }
+        .payment-title {
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #000;
+        }
+        .payment-row {
+            display: flex;
+            margin-bottom: 3px;
+        }
+        .payment-label {
+            width: 60%;
+            font-weight: bold;
+            font-size: 9px;
+            color: #000;
+        }
+        .payment-value {
+            width: 40%;
+            font-size: 9px;
+            color: #333;
+        }
+        
+        /* Totals Table - RIGHT side */
+        .totals-table {
+            width: 300px;
+            border: 1px solid #000;
         }
         .total-row {
             display: flex;
-            justify-content: space-between;
-            padding: 8px 15px;
-            border-bottom: 1px solid #ddd;
+            padding: 4px 8px;
+            border-bottom: 1px solid #ccc;
         }
         .total-label {
+            width: 65%;
+            font-size: 9px;
             font-weight: bold;
+            color: #000;
         }
-        .grand-total {
+        .total-value {
+            width: 35%;
+            font-size: 9px;
+            text-align: right;
+            color: #000;
+        }
+        .grand-total-row {
+            display: flex;
+            padding: 6px 8px;
+            background-color: #f0f0f0;
+        }
+        .grand-total-label {
+            width: 65%;
+            font-size: 10px;
             font-weight: bold;
-            background-color: #e9ecef;
-            padding: 15px;
-            font-size: 14px;
-            border: 2px solid #000;
+            color: #000;
         }
+        .grand-total-value {
+            width: 35%;
+            font-size: 10px;
+            text-align: right;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        /* Amount in Words */
         .amount-words {
-            margin-top: 30px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            clear: both;
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
         }
         .amount-words-title {
+            font-size: 9px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 3px;
             color: #000;
         }
-        .footer {
-            margin-top: 40px;
-            text-align: center;
-            border-top: 1px solid #ddd;
-            padding-top: 15px;
+        .amount-words-text {
+            font-size: 8px;
+            color: #333;
+            text-transform: capitalize;
         }
-        .thank-you {
-            font-size: 16px;
-            font-weight: bold;
-            color: #28a745;
+        
+        /* Notes Section */
+        .notes-section {
+            padding: 8px;
+            border: 1px solid #ccc;
         }
+        .notes-text {
+            font-size: 8px;
+            line-height: 1.3;
+            color: #333;
+        }
+        
+        /* Transaction History */
         .history-section {
-            margin-top: 25px;
+            margin-top: 15px;
         }
         .history-title {
-            font-size: 14px;
+            font-size: 10px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            background-color: #f5f5f5;
+            padding: 5px;
             color: #000;
-            background-color: #f8f9fa;
-            padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
         }
-        .signature-section {
-            margin-top: 40px;
-            text-align: right;
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
         }
-        .signature-box {
-            display: inline-block;
-            width: 200px;
-            border-top: 1px solid #000;
-            padding-top: 10px;
+        .history-header {
+            background-color: #e5e5e5;
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+        }
+        .history-row {
+            border-bottom: 1px solid #ccc;
+        }
+        .history-cell {
+            padding: 4px;
+            font-size: 8px;
+            border-right: 1px solid #ccc;
             text-align: center;
+        }
+        .history-cell-header {
+            padding: 4px;
+            font-size: 8px;
             font-weight: bold;
+            border-right: 1px solid #000;
+            text-align: center;
         }
-        .notes-section {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
+        .type-badge {
+            padding: 2px 4px;
+            font-size: 7px;
+            text-align: center;
         }
-        ${
-          record.cancelledById
-            ? `
-        .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 80px;
-            color: rgba(255, 0, 0, 0.2);
+        
+        /* Authorized Signatory - 40% width, right aligned */
+        .signature-section {
+            width: 40%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin: 20px 0 0 auto;
+        }
+        .signature-text {
+            font-size: 9px;
             font-weight: bold;
-            z-index: -1;
+            margin-bottom: 30px;
+            color: #000;
+            text-align: center;
         }
-        `
-            : ""
-        }
+        
+        /* Footer - absolute positioning */
+        .footer {
+    position: fixed;
+    bottom: 20px;
+    left: 25px;
+    right: 25px;
+    font-size: 8px;
+    text-align: center;
+    border-top: 1px solid #ccc;
+    padding-top: 8px;
+    color: #666;
+    z-index: 10;
+    background-color: white;  
+}
+.thank-you-text {
+    font-size: 9px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 3px;
+}
     </style>
 </head>
 <body>
     ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     
-    <div class="header">
-        <div class="supplier-info">
-            <div class="supplier-title">${
-              record.party?.ledgerName || record.ledger?.ledgerName || ""
-            }</div>
-            <div class="supplier-details">Phone: ${
-              record.party?.PartyDetails?.phoneNumber ||
-              record.ledger?.PartyDetails?.[0]?.phoneNumber ||
-              ""
-            }</div>
-            <div class="supplier-details">Address: ${
-              record.party?.PartyDetails?.address ||
-              record.ledger?.PartyDetails?.[0]?.address ||
-              ""
-            }</div>
-            <div class="supplier-details">TRN: ${
-              record.party?.PartyDetails?.trn ||
-              record.ledger?.PartyDetails?.[0]?.trn ||
-              ""
-            }</div>
+    <div class="content-container">
+        <!-- Header: LEFT - Party Info, RIGHT - Invoice Info -->
+        <div class="header">
+            <div class="company-info">
+                <div class="company-title">${
+                  record.party?.ledgerName || record.ledger?.ledgerName || ""
+                }</div>
+                <div class="company-subtitle">Phone: ${
+                  record.party?.PartyDetails?.phoneNumber ||
+                  record.ledger?.PartyDetails?.[0]?.phoneNumber ||
+                  ""
+                }</div>
+                <div class="company-subtitle">Address: ${
+                  record.party?.PartyDetails?.address ||
+                  record.ledger?.PartyDetails?.[0]?.address ||
+                  ""
+                }</div>
+                <div class="company-subtitle">TRN: ${
+                  record.party?.PartyDetails?.trn ||
+                  record.ledger?.PartyDetails?.[0]?.trn ||
+                  ""
+                }</div>
+            </div>
+            
+            <div class="invoice-info">
+                <div class="invoice-title">TAX INVOICE</div>
+                <div class="invoice-details">Invoice #: ${
+                  record.invoiceNo
+                }</div>
+                <div class="invoice-details">Date: ${new Date(
+                  record.date
+                ).toLocaleDateString()}</div>
+            </div>
         </div>
-        <div class="invoice-info">
-            <div class="invoice-title">TAX INVOICE</div>
-            <div class="invoice-details"><strong>Invoice #:</strong> ${
-              record.invoiceNo
-            }</div>
-            <div class="invoice-details"><strong>Date:</strong> ${new Date(
-              record.date
-            ).toLocaleDateString()}</div>
-        </div>
-    </div>
 
-    <div class="bill-to">
-        <div class="bill-to-title">Bill To:</div>
-        <div><strong>Name:</strong> ${companyProfile.companyName}</div>
-        <div><strong>Phone:</strong> ${companyProfile.phoneNumber}</div>
+        <!-- Bill To Section (Company Profile) -->
+        <div class="section">
+            <div class="bill-to-container">
+                <div class="row">
+                    <div class="label">Name:</div>
+                    <div class="value">${companyProfile.companyName}</div>
+                </div>
+                <div class="row">
+                    <div class="label">Phone:</div>
+                    <div class="value">${companyProfile.phoneNumber}</div>
+                </div>
+                ${
+                  companyProfile.phoneNumber2
+                    ? `
+                <div class="row">
+                    <div class="label">Phone 2:</div>
+                    <div class="value">${companyProfile.phoneNumber2}</div>
+                </div>
+                `
+                    : ""
+                }
+                <div class="row">
+                    <div class="label">Address:</div>
+                    <div class="value">${companyProfile.address || "N/A"}</div>
+                </div>
+                <div class="row">
+                    <div class="label">TRN:</div>
+                    <div class="value">${companyProfile.trn || "N/A"}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="section">
+            ${itemsHTML}
+        </div>
+
+        <!-- Totals Container: LEFT - Payment Info, RIGHT - Totals -->
+        <div class="totals-container">
+            <div class="section">
+                <div class="payment-section">
+                    <div class="payment-row">
+                        <div class="payment-label">Amount Paid:</div>
+                        <div class="payment-value">${
+                          record.received || "0.00"
+                        }</div>
+                    </div>
+                    <div class="payment-row">
+                        <div class="payment-label">Balance Due:</div>
+                        <div class="payment-value">${(
+                          record.grandTotal - (record.received || 0)
+                        ).toFixed(2)}</div>
+                    </div>
+                    ${
+                      record.paymentType
+                        ? `
+                    <div class="payment-row">
+                        <div class="payment-label">Payment Type:</div>
+                        <div class="payment-value">${record.paymentType}</div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    ${
+                      record.bank?.ledgerName
+                        ? `
+                    <div class="payment-row">
+                        <div class="payment-label">Bank:</div>
+                        <div class="payment-value">${record.bank.ledgerName}</div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    ${
+                      record.trxnId
+                        ? `
+                    <div class="payment-row">
+                        <div class="payment-label">Transaction ID:</div>
+                        <div class="payment-value">${record.trxnId}</div>
+                    </div>
+                    `
+                        : ""
+                    }
+                </div>
+            </div>
+            
+            <div class="totals-table">
+                <div class="total-row">
+                    <div class="total-label">Subtotal:</div>
+                    <div class="total-value">${record.totalAmount}</div>
+                </div>
+                <div class="total-row">
+                    <div class="total-label">VAT:</div>
+                    <div class="total-value">${record.taxAmount}</div>
+                </div>
+                ${
+                  activeView === "purchase"
+                    ? `
+                <div class="total-row">
+                    <div class="total-label">Discount:</div>
+                    <div class="total-value">${record.discount || "0.00"}</div>
+                </div>
+                `
+                    : ""
+                }
+                <div class="grand-total-row">
+                    <div class="grand-total-label">Grand Total:</div>
+                    <div class="grand-total-value">${record.grandTotal}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount in Words -->
+        <div class="amount-words">
+            <div class="amount-words-title">Amount in Words:</div>
+            <div class="amount-words-text">Amount in words : ${this.numberToWords(
+              record.grandTotal
+            )}</div>
+        </div>
+
+        <!-- Transaction History -->
+        ${transactionHistoryHTML}
+
+        <!-- Notes Section -->
         ${
-          companyProfile.phoneNumber2
-            ? `<div><strong>Phone 2:</strong> ${companyProfile.phoneNumber2}</div>`
+          record.notes
+            ? `
+        <div class="section">
+            <div class="notes-section">
+                <div class="amount-words-title">Notes</div>
+                <div class="notes-text">Note: ${record.notes}</div>
+            </div>
+        </div>
+        `
             : ""
         }
-        <div><strong>Address:</strong> ${companyProfile.address || "N/A"}</div>
-        <div><strong>TRN:</strong> ${companyProfile.trn || "N/A"}</div>
-    </div>
 
-    ${itemsHTML}
-
-    <div class="totals-container">
-        <div class="payment-section">
-            <div class="bill-to-title">Payment Information</div>
-            <div><strong>Amount Paid:</strong> ${
-              record.received || "0.00"
-            }</div>
-            <div><strong>Balance Due:</strong> ${(
-              record.grandTotal - (record.received || 0)
-            ).toFixed(2)}</div>
-            ${
-              record.paymentType
-                ? `<div><strong>Payment Type:</strong> ${record.paymentType}</div>`
-                : ""
-            }
-            ${
-              record.bank?.ledgerName
-                ? `<div><strong>Bank:</strong> ${record.bank.ledgerName}</div>`
-                : ""
-            }
-            ${
-              record.trxnId
-                ? `<div><strong>Transaction ID:</strong> ${record.trxnId}</div>`
-                : ""
-            }
-        </div>
-        <div class="totals">
-            <div class="total-row">
-                <span class="total-label">Subtotal:</span>
-                <span>${record.totalAmount}</span>
-            </div>
-            <div class="total-row">
-                <span class="total-label">VAT:</span>
-                <span>${record.taxAmount}</span>
-            </div>
-            ${
-              activeView === "purchase"
-                ? `
-            <div class="total-row">
-                <span class="total-label">Discount:</span>
-                <span>${record.discount || "0.00"}</span>
-            </div>
-            `
-                : ""
-            }
-            <div class="total-row grand-total">
-                <span class="total-label">Grand Total:</span>
-                <span>${record.grandTotal}</span>
+        <!-- Authorized Signatory -->
+        <div class="signature-section">
+            <div class="signature-text">
+                Authorized Signatory
             </div>
         </div>
-    </div>
 
-    <div class="amount-words">
-        <div class="amount-words-title">Amount in Words:</div>
-        <div>${this.numberToWords(record.grandTotal)}</div>
-    </div>
-
-    ${transactionHistoryHTML}
-
-    ${
-      record.notes
-        ? `
-    <div class="notes-section">
-        <div class="bill-to-title">Notes</div>
-        <div>${record.notes}</div>
-    </div>
-    `
-        : ""
-    }
-
-    <div class="signature-section">
-        <div class="signature-box">
-            Authorized Signatory
-        </div>
-    </div>
-
-    <div class="footer">
-        <div class="thank-you">Thank you for your business!</div>
-        <div style="margin-top: 10px; font-size: 10px; color: #666;">
-            Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+        <!-- Footer -->
+        <div class="footer">
+            <div class="thank-you-text">Thank you for your business!</div>
+            <div>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</div>
         </div>
     </div>
 </body>
@@ -369,6 +555,7 @@ export class PurchaseTemplate implements PDFTemplate {
             width: 58mm; 
             font-size: 11px; 
             line-height: 1.2;
+            position: relative;
         }
         .center { text-align: center; }
         .line { 
@@ -415,9 +602,25 @@ export class PurchaseTemplate implements PDFTemplate {
             padding-top: 4px;
             margin-top: 4px;
         }
+            .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 24px;
+            color: rgba(255, 0, 0, 0.3);
+            font-weight: bold;
+            z-index: 9999;
+            pointer-events: none;
+            user-select: none;
+            width: 100%;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+
+${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     <div class="center">
         <div class="bold">${companyProfile.companyName}</div>
         <div class="small">${companyProfile.address}</div>
@@ -573,10 +776,6 @@ export class PurchaseTemplate implements PDFTemplate {
     `;
   }
 
-  /**
-   * Generates HTML table for purchase items
-   * @private
-   */
   private generateItemsHTML(record: any, activeView: string): string {
     const items = record.purchaseItems || record.purchaseReturnItems || [];
 
@@ -589,18 +788,18 @@ export class PurchaseTemplate implements PDFTemplate {
         <thead>
             <tr>
                 <th style="width: 5%;">#</th>
-                <th style="width: 30%;">Item</th>
-                <th style="width: 10%;">Qty</th>
-                <th style="width: 10%;">Rate</th>
-                <th style="width: 10%;">Total</th>
+                <th style="width: 30%;">ITEM</th>
+                <th style="width: 10%;">QTY</th>
+                <th style="width: 10%;">RATE</th>
+                <th style="width: 10%;">TOTAL</th>
                 ${
                   activeView === "purchase"
-                    ? '<th style="width: 10%;">Discount</th>'
+                    ? '<th style="width: 10%;">DISCOUNT</th>'
                     : ""
                 }
                 <th style="width: 15%;">VAT</th>
-                <th style="width: 10%;">Taxable Value</th>
-                <th style="width: 10%;">Item Total</th>
+                <th style="width: 10%;">TAXABLE VALUE</th>
+                <th style="width: 10%;">ITEM TOTAL</th>
             </tr>
         </thead>
         <tbody>
@@ -625,7 +824,10 @@ export class PurchaseTemplate implements PDFTemplate {
             ${
               activeView === "purchase" ? `<td>${discount.toFixed(2)}</td>` : ""
             }
-            <td>${taxAmount.toFixed(2)}<br><small>(${item.tax}%)</small></td>
+            <td>
+                <div style="font-size: 7px;">(${item.tax}%)</div>
+                <div>${taxAmount.toFixed(2)}</div>
+            </td>
             <td>${taxableValue.toFixed(2)}</td>
             <td><strong>${itemTotal.toFixed(2)}</strong></td>
         </tr>
@@ -640,10 +842,6 @@ export class PurchaseTemplate implements PDFTemplate {
     return html;
   }
 
-  /**
-   * Generates HTML for transaction history table
-   * @private
-   */
   private generateTransactionHistoryHTML(
     transactionHistory: any,
     historyTotal: number,
@@ -659,14 +857,14 @@ export class PurchaseTemplate implements PDFTemplate {
     let html = `
     <div class="history-section">
         <div class="history-title">Transaction History</div>
-        <table class="table">
+        <table class="history-table">
             <thead>
-                <tr>
-                    <th>Reference</th>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Payment Method</th>
+                <tr class="history-header">
+                    <th class="history-cell-header">Reference</th>
+                    <th class="history-cell-header">Date</th>
+                    <th class="history-cell-header">Type</th>
+                    <th class="history-cell-header">Amount</th>
+                    <th class="history-cell-header">Payment Method</th>
                 </tr>
             </thead>
             <tbody>
@@ -674,37 +872,51 @@ export class PurchaseTemplate implements PDFTemplate {
 
     transactionHistory.history.forEach((entry: any) => {
       html += `
-        <tr>
-            <td>${entry.referenceNo}</td>
-            <td>${new Date(entry.date).toLocaleDateString()}</td>
-            <td>${entry.type}</td>
-            <td>${Number(entry.amount).toFixed(2)}</td>
-            <td>${entry.paymentType || "N/A"}</td>
+        <tr class="history-row">
+            <td class="history-cell">${entry.referenceNo}</td>
+            <td class="history-cell">${new Date(
+              entry.date
+            ).toLocaleDateString()}</td>
+            <td class="history-cell">
+                <span class="type-badge">${entry.type}</span>
+            </td>
+            <td class="history-cell" style="text-align: right;">${Number(
+              entry.amount
+            ).toFixed(2)}</td>
+            <td class="history-cell">${(
+              entry.paymentType || "N/A"
+            ).toLowerCase()}</td>
         </tr>
         `;
     });
 
     html += `
-            <tr style="background-color: #f8f9fa; font-weight: bold;">
-                <td colspan="3"><strong>History Total:</strong></td>
-                <td><strong>${historyTotal.toFixed(2)}</strong></td>
-                <td></td>
+            <tr class="history-row" style="background-color: #f5f5f5;">
+                <td class="history-cell" style="font-weight: bold;">History Total:</td>
+                <td class="history-cell"></td>
+                <td class="history-cell"></td>
+                <td class="history-cell" style="text-align: right; font-weight: bold;">${historyTotal.toFixed(
+                  2
+                )}</td>
+                <td class="history-cell"></td>
             </tr>
-            <tr style="background-color: #e9ecef; font-weight: bold;">
-                <td colspan="3"><strong>Final Amount Due:</strong></td>
-                <td style="color: ${
-                  finalAmountDue > 0 ? "#dc3545" : "#28a745"
-                }">
-                    <strong>${Math.abs(finalAmountDue).toFixed(2)} 
+            <tr class="history-row" style="background-color: #f0f0f0;">
+                <td class="history-cell" style="font-weight: bold;">Final Amount Due:</td>
+                <td class="history-cell"></td>
+                <td class="history-cell"></td>
+                <td class="history-cell" style="text-align: right; font-weight: bold; color: ${
+                  finalAmountDue > 0 ? "#d32f2f" : "#388e3c"
+                };">
+                    ${Math.abs(finalAmountDue).toFixed(2)} 
                     ${
                       finalAmountDue > 0
                         ? "(Due)"
                         : finalAmountDue < 0
                         ? "(Overpaid)"
                         : "(Settled)"
-                    }</strong>
+                    }
                 </td>
-                <td></td>
+                <td class="history-cell"></td>
             </tr>
         </tbody>
     </table>
@@ -714,10 +926,6 @@ export class PurchaseTemplate implements PDFTemplate {
     return html;
   }
 
-  /**
-   * Converts numeric amount to words (UAE Dirham)
-   * @private
-   */
   private numberToWords(num: number): string {
     if (num === 0) return "Zero UAE Dirham Only";
 

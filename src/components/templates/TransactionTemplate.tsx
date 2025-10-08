@@ -1,3 +1,4 @@
+import { COMPANY_LOGO_BASE64 } from "../../constants/image";
 import { PDFTemplate, TemplateData } from "../../types/TemplateTypes";
 
 export class TransactionTemplate implements PDFTemplate {
@@ -226,15 +227,20 @@ export class TransactionTemplate implements PDFTemplate {
         ${
           record.cancelledById
             ? `
-        .watermark {
+             .watermark {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 80px;
-            color: rgba(255, 0, 0, 0.2);
+            font-size: 40px;
+            color: rgba(255, 0, 0, 0.3);
             font-weight: bold;
-            z-index: -1;
+            z-index: 9999;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: Arial, sans-serif;
+            text-shadow: 1px 1px 2px rgba(255, 0, 0, 0.1);
         }
         `
             : ""
@@ -242,7 +248,6 @@ export class TransactionTemplate implements PDFTemplate {
     </style>
 </head>
 <body>
-    ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     
     <div class="header">
         <div class="company-info">
@@ -260,9 +265,9 @@ export class TransactionTemplate implements PDFTemplate {
                 : ""
             }
         </div>
-        <div class="logo-container">
-            <img src="/images/logo.png" alt="Logo" class="logo" style="display: none;" />
-        </div>
+       <div class="logo-container">
+                     <img src="${COMPANY_LOGO_BASE64}" alt="Logo" class="logo" />
+                  </div>
         <div class="transaction-info">
             <div class="transaction-title">${this.getTransactionTitle(
               activeView
@@ -361,6 +366,8 @@ export class TransactionTemplate implements PDFTemplate {
             Generated on ${new Date().toLocaleDateString()}
         </div>
     </div>
+    ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
+
 </body>
 </html>
     `;
@@ -383,6 +390,7 @@ export class TransactionTemplate implements PDFTemplate {
             width: 58mm; 
             font-size: 11px; 
             line-height: 1.2;
+            position: relative;
         }
         .center { text-align: center; }
         .line { 
@@ -399,9 +407,25 @@ export class TransactionTemplate implements PDFTemplate {
             justify-content: space-between;
             margin-bottom: 2px;
         }
+              .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 24px;
+            color: rgba(255, 0, 0, 0.3);
+            font-weight: bold;
+            z-index: 9999;
+            pointer-events: none;
+            user-select: none;
+            width: 100%;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+
+${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     <div class="center">
         <div class="bold" style="font-size: 12px;">${
           companyProfile.companyName
