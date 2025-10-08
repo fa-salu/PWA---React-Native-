@@ -23,8 +23,8 @@ import { printHandler } from "./src/utils/printHandler";
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
-const ERP_URL = "https://goldensignature-one.vercel.app";
-// const ERP_URL = "https://web.goldensignaturetrading.com";
+// const ERP_URL = "https://goldensignature-one.vercel.app";
+const ERP_URL = "https://web.goldensignaturetrading.com";
 
 interface WebViewMessage {
   type: string;
@@ -310,8 +310,7 @@ function AppContent(): JSX.Element {
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContent}>
-            <ActivityIndicator size="large" color="#1976D2" />
-            <Text style={styles.loadingText}>Loading Golden ERP...</Text>
+            <ActivityIndicator size="large" color="#000" />
             <Text style={styles.loadingSubtext}>Connecting to server...</Text>
           </View>
 
