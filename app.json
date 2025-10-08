@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Golden",
+    "name": "",
     "slug": "goldensignature",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,11 +19,14 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.fasalurahman.goldensignature",
-      "permissions": [
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.ACCESS_NETWORK_STATE"
-      ]
+      "permissions": ["android.permission.ACCESS_NETWORK_STATE"],
+      "jsEngine": "hermes",
+      "buildType": "aab",
+      "enableDangerousExperimentalLeanBuilds": true,
+      "splits": {
+        "abi": true,
+        "density": true
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
