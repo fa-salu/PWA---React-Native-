@@ -18,12 +18,12 @@ import {
   WebViewMessageEvent,
 } from "react-native-webview";
 import * as SplashScreen from "expo-splash-screen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { printHandler } from "./src/utils/printHandler";
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
-// const ERP_URL = "https://goldensignature-one.vercel.app";
 const ERP_URL = "https://web.goldensignaturetrading.com";
 
 interface WebViewMessage {
@@ -36,6 +36,25 @@ function AppContent(): JSX.Element {
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [canGoBack, setCanGoBack] = useState<boolean>(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  // Load auth token from AsyncStorage on mount
+  useEffect(() => {
+    const loadAuthToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem("auth_token");
+        setAuthToken(token);
+        console.log(
+          "Loaded auth token from storage:",
+          token ? "exists" : "none"
+        );
+      } catch (error) {
+        console.error("Failed to load auth token:", error);
+      }
+    };
+
+    loadAuthToken();
+  }, []);
 
   useEffect(() => {
     if (Platform.OS === "android") {
@@ -66,6 +85,35 @@ function AppContent(): JSX.Element {
   const handleLoadEnd = (): void => {
     setIsLoading(false);
     SplashScreen.hideAsync();
+
+    // Inject saved auth token into WebView cookies after load
+    if (authToken && webViewRef.current) {
+      const setCookieScript = `
+        (function() {
+          try {
+            // Set cookie with long expiration
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + 30);
+            document.cookie = "auth_token=${authToken}; expires=" + expiryDate.toUTCString() + "; path=/; SameSite=Lax";
+            
+            console.log('Auth token injected into cookies');
+            
+            // Notify that token is set
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'TOKEN_INJECTED',
+                success: true
+              }));
+            }
+          } catch (error) {
+            console.error('Failed to inject token:', error);
+          }
+        })();
+        true;
+      `;
+
+      webViewRef.current.injectJavaScript(setCookieScript);
+    }
   };
 
   const handleError = (error: any): void => {
@@ -85,6 +133,7 @@ function AppContent(): JSX.Element {
       "goldensignature-one.vercel.app",
       "www.goldensignaturetrading.com",
       "goldensignaturetrading.com",
+      "web.goldensignaturetrading.com",
     ];
 
     try {
@@ -125,6 +174,28 @@ function AppContent(): JSX.Element {
       e.preventDefault();
     });
 
+    // Intercept cookie changes and sync to React Native
+    const originalCookieSetter = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie').set;
+    Object.defineProperty(document, 'cookie', {
+      set: function(value) {
+        originalCookieSetter.call(document, value);
+        
+        // Check if it's the auth_token cookie
+        if (value.includes('auth_token=')) {
+          const match = value.match(/auth_token=([^;]+)/);
+          if (match && match[1] && window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'SAVE_AUTH_TOKEN',
+              token: match[1]
+            }));
+          }
+        }
+      },
+      get: function() {
+        return Object.getOwnPropertyDescriptor(Document.prototype, 'cookie').get.call(document);
+      }
+    });
+
     // Add touch feedback for better mobile experience
     const style = document.createElement('style');
     style.innerHTML = \`
@@ -148,7 +219,6 @@ function AppContent(): JSX.Element {
         transition: transform 0.1s;
       }
 
-      /* Hide any desktop PWA install prompts */
       .pwa-install-button,
       .install-prompt {
         display: none !important;
@@ -163,7 +233,8 @@ function AppContent(): JSX.Element {
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'APP_READY',
           timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent
+          userAgent: navigator.userAgent,
+          cookies: document.cookie
         }));
       }
     }, 1000);
@@ -183,9 +254,7 @@ function AppContent(): JSX.Element {
   true;
 `;
 
-  const handleMessage = (event: WebViewMessageEvent): void => {
-    console.log("eventtt", event);
-
+  const handleMessage = async (event: WebViewMessageEvent): Promise<void> => {
     try {
       const data: WebViewMessage = JSON.parse(event.nativeEvent.data);
       console.log("Message from WebView:", data);
@@ -193,10 +262,26 @@ function AppContent(): JSX.Element {
       switch (data.type) {
         case "APP_READY":
           console.log("ERP system loaded successfully");
+          console.log("Current cookies:", data.data?.cookies);
           break;
+
+        case "SAVE_AUTH_TOKEN":
+          // Save token to AsyncStorage when user logs in
+          if (data.data?.token) {
+            await AsyncStorage.setItem("auth_token", data.data.token);
+            setAuthToken(data.data.token);
+            console.log("Auth token saved to AsyncStorage");
+          }
+          break;
+
+        case "TOKEN_INJECTED":
+          console.log("Token injection confirmed");
+          break;
+
         case "ORIENTATION_CHANGED":
           console.log("Orientation changed:", data.data);
           break;
+
         case "PRINT_DATA":
         case "SHARE_DATA":
         case "DOWNLOAD_DATA":
@@ -205,6 +290,7 @@ function AppContent(): JSX.Element {
         case "DOWNLOAD_EXCEL":
           printHandler.handleMessage(event);
           break;
+
         default:
           console.log("Unknown message type:", data.type);
       }
@@ -277,6 +363,7 @@ function AppContent(): JSX.Element {
         domStorageEnabled={true}
         sharedCookiesEnabled={true}
         thirdPartyCookiesEnabled={true}
+        incognito={false}
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
         mixedContentMode="compatibility"
@@ -341,61 +428,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
   },
-  header: {
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-    flex: 1,
-    marginRight: 16,
-  },
-  headerButtons: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-    borderRadius: 4,
-  },
-  backButtonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  refreshButton: {
-    padding: 8,
-    borderRadius: 4,
-  },
-  refreshButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   webview: {
     flex: 1,
   },
-
   loadingContainer: {
     flex: 1,
     backgroundColor: "#f5f5f5",
@@ -403,13 +438,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 40,
   },
-
   loadingContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-
   loadingOverlay: {
     position: "absolute",
     top: 0,
@@ -421,20 +454,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 40,
   },
-
-  loadingText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1976D2",
-    marginBottom: 8,
-    marginTop: 20,
-  },
-
   loadingSubtext: {
     fontSize: 14,
     color: "#666",
+    marginTop: 10,
   },
-
   errorContainer: {
     flex: 1,
     backgroundColor: "#f5f5f5",
@@ -442,20 +466,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-
   errorContent: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-
   errorText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#d32f2f",
     marginBottom: 10,
   },
-
   errorDesc: {
     fontSize: 14,
     color: "#666",
@@ -463,7 +484,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 20,
   },
-
   retryButton: {
     backgroundColor: "#1976D2",
     paddingHorizontal: 24,
@@ -481,24 +501,20 @@ const styles = StyleSheet.create({
       },
     }),
   },
-
   retryButtonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
   },
-
   logoContainer: {
     alignItems: "center",
     paddingBottom: 20,
   },
-
   companyLogo: {
     width: 50,
     height: 50,
     marginBottom: 8,
   },
-
   companyText: {
     fontSize: 12,
     color: "#666",

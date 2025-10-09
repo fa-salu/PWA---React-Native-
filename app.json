@@ -35,13 +35,6 @@
         "android.permission.READ_MEDIA_VIDEO",
         "android.permission.READ_MEDIA_AUDIO"
       ],
-      "jsEngine": "hermes",
-      "buildType": "aab",
-      "enableDangerousExperimentalLeanBuilds": true,
-      "splits": {
-        "abi": true,
-        "density": true
-      },
       "splash": {
         "image": "./assets/splash-icon.png",
         "resizeMode": "contain",
@@ -60,6 +53,12 @@
           "isAccessMediaLocationEnabled": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "91254074-5c0c-4e25-975c-2f67f4d7fc28"
+      }
+    },
+    "owner": "xteumtech"
   }
 }
