@@ -33,341 +33,455 @@ export class TransactionTemplate implements PDFTemplate {
         body { 
             margin: 0; 
             padding: 20px; 
-            font-family: Arial, sans-serif; 
-            font-size: 12px;
-            color: #333;
+            font-family: Helvetica, Arial, sans-serif; 
+            font-size: 10px;
+            color: #2c3e50;
+            background-color: #ffffff;
         }
+        
         @page { 
-            margin: 0.5in; 
+            margin: 20px; 
             size: A4; 
         }
+        
+        .container {
+            padding: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header Section - Matching PDF */
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #34495e;
         }
-        .company-info {
-            width: 55%;
+
+        .company-section {
+            width: 45%;
         }
-        .logo-container {
+
+        .logo-section {
             width: 20%;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+
         .logo {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             object-fit: contain;
         }
-        .transaction-info {
+
+        .voucher-section {
             width: 35%;
             text-align: right;
         }
-        .company-title {
-            font-size: 18px;
+
+        .company-name {
+            font-size: 14px;
             font-weight: bold;
-            color: #000;
-            margin-bottom: 8px;
+            color: #2c3e50;
+            margin-bottom: 3px;
         }
+
         .company-details {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 4px;
+            font-size: 8px;
+            color: #34495e;
+            margin-bottom: 1px;
+            line-height: 1.2;
         }
-        .transaction-title {
-            font-size: 16px;
+
+        .voucher-title {
+            font-size: 12px;
             font-weight: bold;
-            border: 2px solid #000;
-            padding: 10px;
-            margin-bottom: 10px;
-            background-color: #f8f9fa;
-        }
-        .transaction-details {
-            font-size: 11px;
+            border: 1px solid #000;
+            color: #000;
+            padding: 6px;
+            text-align: center;
             margin-bottom: 5px;
         }
-        .section {
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #000;
-            background-color: #f8f9fa;
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-        .details-container {
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-        }
-        .detail-row {
-            display: flex;
-            margin-bottom: 8px;
-        }
-        .detail-label {
-            width: 25%;
-            font-weight: bold;
-            color: #000;
-        }
-        .detail-value {
-            width: 75%;
-            color: #333;
-        }
-        .payment-section {
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            margin-bottom: 20px;
-        }
-        .amount-container {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-        .amount-table {
-            width: 300px;
-            border: 2px solid #000;
-        }
-        .amount-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 15px;
-            background-color: #f0f0f0;
-        }
-        .amount-label {
-            font-size: 14px;
-            font-weight: bold;
-            color: #000;
-        }
-        .amount-value {
-            font-size: 14px;
-            font-weight: bold;
-            color: #000;
-        }
-        .amount-words {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-        }
-        .amount-words-title {
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #000;
-        }
-        .amount-words-text {
-            font-size: 11px;
-            color: #333;
-            text-transform: capitalize;
-        }
-        .notes-section {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-        }
-        .history-section {
-            margin-top: 25px;
-        }
-        .history-title {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #000;
-            background-color: #f8f9fa;
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-        }
-        .table th, .table td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: center;
-            font-size: 10px;
-        }
-        .table th {
-            background-color: #e9ecef;
-            font-weight: bold;
-            color: #000;
-        }
-        .table tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        .signature-section {
-            margin-top: 40px;
+
+        .voucher-info {
+            font-size: 9px;
+            color: #2c3e50;
+            margin-bottom: 2px;
             text-align: right;
         }
-        .signature-box {
-            display: inline-block;
-            width: 200px;
-            border-top: 1px solid #000;
-            padding-top: 10px;
-            text-align: center;
+
+        /* Party Section - Matching PDF */
+        .party-section {
+            background-color: #ecf0f1;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #3498db;
+        }
+
+        .section-title {
+            font-size: 10px;
             font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
         }
-        .footer {
-            margin-top: 40px;
+
+        .info-row {
+            display: flex;
+            margin-bottom: 3px;
+        }
+
+        .info-label {
+            width: 25%;
+            font-size: 9px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .info-value {
+            width: 75%;
+            font-size: 9px;
+            color: #2c3e50;
+        }
+
+        /* Amount Section - Matching PDF */
+        .amount-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .payment-details {
+            width: 65%;
+        }
+
+        .payment-row {
+            display: flex;
+            margin-bottom: 2px;
+        }
+
+        .payment-label {
+            width: 40%;
+            font-size: 9px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .payment-value {
+            width: 60%;
+            font-size: 9px;
+            color: #2c3e50;
+        }
+
+        .amount-box {
+            border: 1px solid #000;
+            padding: 10px;
+            border-radius: 4px;
+            min-width: 120px;
+        }
+
+        .amount-label {
+            font-size: 8px;
+            color: #000;
             text-align: center;
-            border-top: 1px solid #ddd;
-            padding-top: 15px;
+            margin-bottom: 2px;
         }
-        .thank-you {
+
+        .amount-value {
             font-size: 16px;
             font-weight: bold;
-            color: #28a745;
+            color: #000;
+            text-align: center;
         }
+
+        /* Amount in Words - Matching PDF */
+        .amount-in-words {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        .amount-words-title {
+            font-size: 8px;
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 3px;
+        }
+
+        .amount-words-text {
+            font-size: 8px;
+            color: #856404;
+            font-style: italic;
+        }
+
+        /* Notes Section - Matching PDF */
+        .notes-section {
+            background-color: #f8f9fa;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #6c757d;
+        }
+
+        .notes-text {
+            font-size: 8px;
+            color: #495057;
+            line-height: 1.3;
+        }
+
+        /* History Table - Matching PDF */
+        .history-section {
+            margin-bottom: 10px;
+        }
+
+        .history-table {
+            border: 1px solid #dee2e6;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-header {
+            background-color: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .history-cell {
+            font-size: 7px;
+            text-align: center;
+            padding: 4px 6px;
+            border-right: 1px solid #ccc;
+        }
+
+        .history-cell-bold {
+            font-size: 7px;
+            font-weight: bold;
+            text-align: center;
+            padding: 4px 6px;
+            border-right: 1px solid #ccc;
+        }
+
+        .history-row {
+            border-bottom: 0.5px solid #f1f3f4;
+        }
+
+        .total-row {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        /* Signature Section - Matching PDF */
+        .signature-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .signature-box {
+            width: 30%;
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 100%;
+            height: 30px;
+            border-bottom: 1px solid #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .signature-label {
+            font-size: 8px;
+            font-weight: bold;
+            color: #495057;
+            text-align: center;
+        }
+
+        /* Footer - Matching PDF */
+        .footer {
+            margin-top: 15px;
+            padding-top: 8px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 7px;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        .thank-you {
+            font-size: 9px;
+            font-weight: bold;
+            color: #27ae60;
+            text-align: center;
+        }
+
+        /* Watermark */
         ${
           record.cancelledById
             ? `
-             .watermark {
+        .watermark {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
+            top: 25%;
+            left: 25%;
+            transform: rotate(-45deg);
             font-size: 40px;
-            color: rgba(255, 0, 0, 0.3);
-            font-weight: bold;
-            z-index: 9999;
+            color: rgba(220, 53, 69, 0.15);
+            font-weight: 900;
+            text-transform: uppercase;
+            z-index: 0;
             pointer-events: none;
             user-select: none;
-            -webkit-user-select: none;
-            font-family: Arial, sans-serif;
-            text-shadow: 1px 1px 2px rgba(255, 0, 0, 0.1);
         }
         `
             : ""
+        }
+
+        /* Print styles */
+        @media print {
+            body { padding: 10px; }
+            .container { padding: 10px; }
         }
     </style>
 </head>
 <body>
-    
-    <div class="header">
-        <div class="company-info">
-            <div class="company-title">${companyProfile.companyName}</div>
-            <div class="company-details">${companyProfile.address || ""}</div>
-            <div class="company-details">Phone: ${
-              companyProfile.phoneNumber || ""
-            }</div>
-            <div class="company-details">Email: ${
-              companyProfile.email || ""
-            }</div>
-            ${
-              companyProfile.trn
-                ? `<div class="company-details">GSTIN: ${companyProfile.trn}</div>`
-                : ""
-            }
-        </div>
-       <div class="logo-container">
-                     <img src="${COMPANY_LOGO_BASE64}" alt="Logo" class="logo" />
-                  </div>
-        <div class="transaction-info">
-            <div class="transaction-title">${this.getTransactionTitle(
-              activeView
-            )}</div>
-            <div class="transaction-details"><strong>No:</strong> ${this.getTransactionNumber(
-              record,
-              activeView
-            )}</div>
-            <div class="transaction-details"><strong>Date:</strong> ${new Date(
-              record.date
-            ).toLocaleDateString()}</div>
-        </div>
-    </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-section">
+                <div class="company-name">${companyProfile.companyName}</div>
+                <div class="company-details">${
+                  companyProfile.address || ""
+                }</div>
+                <div class="company-details">Ph: ${
+                  companyProfile.phoneNumber || ""
+                } | ${companyProfile.email || ""}</div>
+                ${
+                  companyProfile.trn
+                    ? `<div class="company-details">TRN: ${companyProfile.trn}</div>`
+                    : ""
+                }
+            </div>
+            
+            <div class="logo-section">
+                <img src="${COMPANY_LOGO_BASE64}" alt="Logo" class="logo" />
+            </div>
 
-    <div class="section">
-        <div class="details-container">
-            ${this.renderTransactionDetails(record, activeView)}
-        </div>
-    </div>
-
-    <div class="payment-section">
-        <div class="section-title">Payment Information</div>
-        <div class="detail-row">
-            <div class="detail-label">Payment Method:</div>
-            <div class="detail-value">${this.getPaymentMethod(
-              record,
-              activeView
-            )}</div>
-        </div>
-        ${
-          record.trxnId
-            ? `
-        <div class="detail-row">
-            <div class="detail-label">Transaction ID:</div>
-            <div class="detail-value">${record.trxnId}</div>
-        </div>
-        `
-            : ""
-        }
-        ${
-          activeView === "receipts"
-            ? `
-        <div class="detail-row">
-            <div class="detail-label">Creator Name:</div>
-            <div class="detail-value">${record.createdBy?.name || ""}</div>
-        </div>
-        <div class="detail-row">
-            <div class="detail-label">Creator Contact:</div>
-            <div class="detail-value">${
-              record.createdBy?.phoneNumber || ""
-            }</div>
-        </div>
-        `
-            : ""
-        }
-    </div>
-
-    <div class="amount-container">
-        <div class="amount-table">
-            <div class="amount-row">
-                <div class="amount-label">Total Amount:</div>
-                <div class="amount-value">${record.amount}</div>
+            <div class="voucher-section">
+                <div class="voucher-title">${this.getTransactionTitle(
+                  activeView
+                )}</div>
+                <div class="voucher-info">No: ${this.getTransactionNumber(
+                  record,
+                  activeView
+                )}</div>
+                <div class="voucher-info">Date: ${new Date(
+                  record.date
+                ).toLocaleDateString()}</div>
+                <div class="voucher-info">Time: ${new Date(
+                  record.date
+                ).toLocaleTimeString()}</div>
             </div>
         </div>
-    </div>
 
-    <div class="amount-words">
-        <div class="amount-words-title">Amount in Words:</div>
-        <div class="amount-words-text">${this.numberToWords(
-          Number(record.amount)
-        )}</div>
-    </div>
+        <!-- Party Information -->
+        ${this.renderPartyInfo(record, activeView)}
 
-    ${
-      record.note
-        ? `
-    <div class="notes-section">
-        <div class="section-title">Notes</div>
-        <div>${record.note}</div>
-    </div>
-    `
-        : ""
-    }
+        <!-- Amount and Payment Details -->
+        <div class="amount-section">
+            <div class="payment-details">
+                <div class="payment-row">
+                    <div class="payment-label">Payment Mode:</div>
+                    <div class="payment-value">${this.getPaymentMethod(
+                      record,
+                      activeView
+                    )}</div>
+                </div>
+                ${
+                  record.trxnId
+                    ? `
+                <div class="payment-row">
+                    <div class="payment-label">Transaction ID:</div>
+                    <div class="payment-value">${record.trxnId}</div>
+                </div>
+                `
+                    : ""
+                }
+                ${
+                  activeView === "receipts"
+                    ? `
+                <div class="payment-row">
+                    <div class="payment-label">Received by:</div>
+                    <div class="payment-value">${
+                      record.createdBy?.name || ""
+                    }</div>
+                </div>
+                <div class="payment-row">
+                    <div class="payment-label">Contact:</div>
+                    <div class="payment-value">${
+                      record.createdBy?.phoneNumber || ""
+                    }</div>
+                </div>
+                `
+                    : ""
+                }
+            </div>
+            
+            <div class="amount-box">
+                <div class="amount-label">TOTAL AMOUNT</div>
+                <div class="amount-value">AED ${Number(record.amount).toFixed(
+                  2
+                )}</div>
+            </div>
+        </div>
 
-    ${transactionHistoryHTML}
+        <!-- Amount in Words -->
+        <div class="amount-in-words">
+            <div class="amount-words-title">Amount in Words:</div>
+            <div class="amount-words-text">${this.numberToWords(
+              Number(record.amount)
+            )}</div>
+        </div>
 
-    <div class="signature-section">
-        <div class="signature-box">
-            Authorized Signatory
+        <!-- Notes -->
+        ${
+          record.note
+            ? `
+        <div class="notes-section">
+            <div class="section-title">Notes:</div>
+            <div class="notes-text">${record.note}</div>
+        </div>
+        `
+            : ""
+        }
+
+        <!-- Transaction History -->
+        ${transactionHistoryHTML}
+
+        <!-- Signatures -->
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="signature-label">Authorized By</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="thank-you">Thank you for your business!</div>
+            <div class="footer-text">Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</div>
         </div>
     </div>
 
-    <div class="footer">
-        <div class="thank-you">Thank you for your business!</div>
-        <div style="margin-top: 10px; font-size: 10px; color: #666;">
-            Generated on ${new Date().toLocaleDateString()}
-        </div>
-    </div>
     ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
-
 </body>
 </html>
     `;
@@ -507,10 +621,65 @@ ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     `;
   }
 
-  /**
-   * Get transaction title based on type
-   * @private
-   */
+  private renderPartyInfo(record: any, activeView: string): string {
+    if (activeView === "receipts") {
+      const party = record.party || record.ledger;
+      const details = party?.PartyDetails || record.ledger?.PartyDetails?.[0];
+
+      return `
+        <div class="party-section">
+            <div class="section-title">RECEIVED FROM</div>
+            <div class="info-row">
+                <div class="info-label">Party:</div>
+                <div class="info-value">${party?.ledgerName || ""}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Contact:</div>
+                <div class="info-value">${details?.phoneNumber || ""}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Address:</div>
+                <div class="info-value">${details?.address || ""}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Trn:</div>
+                <div class="info-value">${details?.trn || ""}</div>
+            </div>
+        </div>
+      `;
+    } else if (activeView === "payments") {
+      const party = record.party;
+      const details = party?.PartyDetails;
+
+      return `
+        <div class="party-section">
+            <div class="section-title">PAID TO</div>
+            <div class="info-row">
+                <div class="info-label">Party:</div>
+                <div class="info-value">${party?.ledgerName || ""}</div>
+            </div>
+            ${
+              details?.phoneNumber
+                ? `
+            <div class="info-row">
+                <div class="info-label">Contact:</div>
+                <div class="info-value">${details.phoneNumber}</div>
+            </div>
+            `
+                : ""
+            }
+            <div class="info-row">
+                <div class="info-label">Type:</div>
+                <div class="info-value">${
+                  party?.type?.toUpperCase() || ""
+                }</div>
+            </div>
+        </div>
+      `;
+    }
+    return "";
+  }
+
   private getTransactionTitle(activeView: string): string {
     switch (activeView) {
       case "receipts":
@@ -524,10 +693,6 @@ ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     }
   }
 
-  /**
-   * Get transaction number based on type
-   * @private
-   */
   private getTransactionNumber(record: any, activeView: string): string {
     switch (activeView) {
       case "receipts":
@@ -541,10 +706,6 @@ ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     }
   }
 
-  /**
-   * Get payment method based on type
-   * @private
-   */
   private getPaymentMethod(record: any, activeView: string): string {
     if (record.paymentType) {
       return record.paymentType;
@@ -552,85 +713,6 @@ ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     return activeView === "bankentries" ? "Bank Transfer" : "Cash";
   }
 
-  /**
-   * Render transaction details based on type
-   * @private
-   */
-  private renderTransactionDetails(record: any, activeView: string): string {
-    if (activeView === "receipts") {
-      return `
-        <div class="detail-row">
-            <div class="detail-label">Received From:</div>
-            <div class="detail-value">${
-              record.party?.ledgerName || record.ledger?.ledgerName || ""
-            }</div>
-        </div>
-        <div class="detail-row">
-            <div class="detail-label">Contact:</div>
-            <div class="detail-value">${
-              record.party?.PartyDetails?.phoneNumber ||
-              record.ledger?.PartyDetails?.[0]?.phoneNumber ||
-              ""
-            }</div>
-        </div>
-        <div class="detail-row">
-            <div class="detail-label">Address:</div>
-            <div class="detail-value">${
-              record.party?.PartyDetails?.address ||
-              record.ledger?.PartyDetails?.[0]?.address ||
-              ""
-            }</div>
-        </div>
-        <div class="detail-row">
-            <div class="detail-label">TRN:</div>
-            <div class="detail-value">${
-              record.party?.PartyDetails?.trn ||
-              record.ledger?.PartyDetails?.[0]?.trn ||
-              ""
-            }</div>
-        </div>
-      `;
-    } else if (activeView === "payments") {
-      return `
-        <div class="detail-row">
-            <div class="detail-label">Paid To:</div>
-            <div class="detail-value">${record.party?.ledgerName || ""}</div>
-        </div>
-        ${
-          record.party?.PartyDetails?.phoneNumber
-            ? `
-        <div class="detail-row">
-            <div class="detail-label">Contact:</div>
-            <div class="detail-value">${record.party.PartyDetails.phoneNumber}</div>
-        </div>
-        `
-            : ""
-        }
-        ${
-          record.party?.PartyDetails?.address
-            ? `
-        <div class="detail-row">
-            <div class="detail-label">Address:</div>
-            <div class="detail-value">${record.party.PartyDetails.address}</div>
-        </div>
-        `
-            : ""
-        }
-        <div class="detail-row">
-            <div class="detail-label">Payee Type:</div>
-            <div class="detail-value">${
-              record.party?.type?.toUpperCase() || ""
-            }</div>
-        </div>
-      `;
-    }
-    return "";
-  }
-
-  /**
-   * Get thermal party info
-   * @private
-   */
   private getThermalPartyInfo(record: any, activeView: string): string {
     if (activeView === "receipts") {
       return `
@@ -670,10 +752,6 @@ ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     return "";
   }
 
-  /**
-   * Generates HTML for transaction history table
-   * @private
-   */
   private generateTransactionHistoryHTML(
     transactionHistory: any,
     historyTotal: number,
@@ -688,53 +766,56 @@ ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
 
     let html = `
     <div class="history-section">
-        <div class="history-title">Transaction History</div>
-        <table class="table">
-            <thead>
+        <div class="section-title">Transaction History</div>
+        <table class="history-table">
+            <thead class="history-header">
                 <tr>
-                    <th>Reference</th>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Payment Method</th>
+                    <th class="history-cell-bold">Ref No.</th>
+                    <th class="history-cell-bold">Date</th>
+                    <th class="history-cell-bold">Type</th>
+                    <th class="history-cell-bold">Amount</th>
                 </tr>
             </thead>
             <tbody>
     `;
 
-    transactionHistory.history.forEach((entry: any) => {
+    // Show only first 5 entries to match PDF
+    transactionHistory.history.slice(0, 5).forEach((entry: any) => {
       html += `
-        <tr>
-            <td>${entry.referenceNo}</td>
-            <td>${new Date(entry.date).toLocaleDateString()}</td>
-            <td>${entry.type}</td>
-            <td>${Number(entry.amount).toFixed(2)}</td>
-            <td>${entry.paymentType?.toLowerCase() || "N/A"}</td>
+        <tr class="history-row">
+            <td class="history-cell">${entry.referenceNo}</td>
+            <td class="history-cell">${new Date(
+              entry.date
+            ).toLocaleDateString()}</td>
+            <td class="history-cell">${entry.type}</td>
+            <td class="history-cell">${Number(entry.amount).toFixed(2)}</td>
         </tr>
-        `;
+      `;
     });
 
     html += `
-            <tr style="background-color: #f8f9fa; font-weight: bold;">
-                <td colspan="3"><strong>History Total:</strong></td>
-                <td><strong>${historyTotal.toFixed(2)}</strong></td>
-                <td></td>
+            <tr class="history-row total-row">
+                <td class="history-cell-bold">Total History:</td>
+                <td class="history-cell"></td>
+                <td class="history-cell"></td>
+                <td class="history-cell-bold">${historyTotal.toFixed(2)}</td>
             </tr>
-            <tr style="background-color: #e9ecef; font-weight: bold;">
-                <td colspan="3"><strong>Final Amount Due:</strong></td>
-                <td style="color: ${
+            <tr class="history-row total-row">
+                <td class="history-cell-bold">Balance Due:</td>
+                <td class="history-cell"></td>
+                <td class="history-cell"></td>
+                <td class="history-cell-bold" style="color: ${
                   finalAmountDue > 0 ? "#dc3545" : "#28a745"
                 }">
-                    <strong>${Math.abs(finalAmountDue).toFixed(2)} 
+                    ${Math.abs(finalAmountDue).toFixed(2)} 
                     ${
                       finalAmountDue > 0
                         ? "(Due)"
                         : finalAmountDue < 0
                         ? "(Overpaid)"
                         : "(Settled)"
-                    }</strong>
+                    }
                 </td>
-                <td></td>
             </tr>
         </tbody>
     </table>
@@ -744,12 +825,8 @@ ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
     return html;
   }
 
-  /**
-   * Converts numeric amount to words (Indian Rupees)
-   * @private
-   */
   private numberToWords(num: number): string {
-    if (num === 0) return "Zero Rupees Only";
+    if (num === 0) return "Zero Dirham Only";
 
     const ones = [
       "",
@@ -835,10 +912,10 @@ ${record.cancelledById ? '<div class="watermark">CANCELLED</div>' : ""}
       result += convertGroup(remaining);
     }
 
-    result += "Rupees";
+    result += "Dirham";
 
     if (decimalPart > 0) {
-      result += " and " + convertGroup(decimalPart) + "Paise";
+      result += " and " + convertGroup(decimalPart) + "fils";
     }
 
     return result + " Only";
