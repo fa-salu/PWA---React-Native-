@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
+  Linking,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -26,7 +27,8 @@ import { printHandler } from "./src/utils/printHandler";
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
-const ERP_URL = "https://web.goldensignaturetrading.com";
+// const ERP_URL = "https://web.goldensignaturetrading.com";
+const ERP_URL = "https://goldensignature-one.vercel.app";
 
 interface WebViewMessage {
   type: string;
@@ -47,10 +49,6 @@ function AppContent(): JSX.Element {
       try {
         const token = await AsyncStorage.getItem("auth_token");
         setAuthToken(token);
-        console.log(
-          "Loaded auth token from storage:",
-          token ? "exists" : "none"
-        );
       } catch (error) {
         console.error("Failed to load auth token:", error);
       }
@@ -84,7 +82,6 @@ function AppContent(): JSX.Element {
   const handleRefresh = (): void => {
     setRefreshing(true);
     webViewRef.current?.reload();
-    // Auto-stop refreshing after 2 seconds
     setTimeout(() => setRefreshing(false), 2000);
   };
 
@@ -97,19 +94,16 @@ function AppContent(): JSX.Element {
     setRefreshing(false);
     SplashScreen.hideAsync();
 
-    // Inject saved auth token into WebView cookies after load
     if (authToken && webViewRef.current) {
       const setCookieScript = `
         (function() {
           try {
-            // Set cookie with long expiration
             const expiryDate = new Date();
             expiryDate.setDate(expiryDate.getDate() + 30);
             document.cookie = "auth_token=${authToken}; expires=" + expiryDate.toUTCString() + "; path=/; SameSite=Lax";
             
             console.log('Auth token injected into cookies');
             
-            // Notify that token is set
             if (window.ReactNativeWebView) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'TOKEN_INJECTED',
@@ -129,6 +123,7 @@ function AppContent(): JSX.Element {
 
   const handleError = (error: any): void => {
     console.error("WebView Error:", error);
+    setRefreshing(false);
     Alert.alert(
       "Connection Error",
       "Failed to load the ERP system. Please check your internet connection.",
@@ -140,6 +135,48 @@ function AppContent(): JSX.Element {
   };
 
   const handleShouldStartLoadWithRequest = (request: any): boolean => {
+    const { url } = request;
+
+    if (url.startsWith("tel:")) {
+      Linking.openURL(url).catch((err) => {
+        console.error("Failed to open phone app:", err);
+        Alert.alert("Error", "Could not open phone app");
+      });
+      return false;
+    }
+
+    if (
+      url.startsWith("geo:") ||
+      url.startsWith("maps:") ||
+      url.includes("maps.google.com") ||
+      url.includes("maps.apple.com") ||
+      url.includes("goo.gl/maps")
+    ) {
+      let mapUrl = url;
+      if (url.includes("maps.google.com") || url.includes("goo.gl/maps")) {
+        if (Platform.OS === "ios") {
+          mapUrl = url.replace(
+            "https://maps.google.com",
+            "maps://maps.google.com"
+          );
+        } else {
+          const match = url.match(/(@|q=)([^&]+)/);
+          if (match) {
+            const coords = match[2];
+            mapUrl = `geo:0,0?q=${coords}`;
+          }
+        }
+      }
+
+      Linking.openURL(mapUrl).catch((err) => {
+        console.error("Failed to open maps app:", err);
+        Linking.openURL(url).catch(() => {
+          Alert.alert("Error", "Could not open maps app");
+        });
+      });
+      return false;
+    }
+
     const allowedDomains: string[] = [
       "goldensignature-one.vercel.app",
       "www.goldensignaturetrading.com",
@@ -148,17 +185,16 @@ function AppContent(): JSX.Element {
     ];
 
     try {
-      const url = new URL(request.url);
-      return allowedDomains.includes(url.hostname);
+      const urlObj = new URL(url);
+      return allowedDomains.includes(urlObj.hostname);
     } catch (error) {
-      console.warn("Invalid URL:", request.url);
+      console.warn("Invalid URL:", url);
       return false;
     }
   };
 
   const injectedJavaScript: string = `
   (function() {
-    // Prevent multiple executions
     if (window.goldensAppInitialized) {
       return;
     }
@@ -180,6 +216,38 @@ function AppContent(): JSX.Element {
     window.appVersion = '1.0.0';
     window.platform = '${Platform.OS}';
 
+    // Enhanced click handling for phone and map links
+    document.addEventListener('click', function(e) {
+      let target = e.target;
+      
+      // Find the actual link element
+      while (target && target.tagName !== 'A') {
+        target = target.parentElement;
+      }
+      
+      if (target && target.href) {
+        const href = target.href;
+        
+        // Handle phone links
+        if (href.startsWith('tel:')) {
+          e.preventDefault();
+          window.location.href = href;
+          return false;
+        }
+        
+        // Handle map links
+        if (href.startsWith('geo:') || 
+            href.startsWith('maps:') || 
+            href.includes('maps.google.com') || 
+            href.includes('maps.apple.com') ||
+            href.includes('goo.gl/maps')) {
+          e.preventDefault();
+          window.location.href = href;
+          return false;
+        }
+      }
+    }, true);
+
     // Prevent context menu on long press
     document.addEventListener('contextmenu', function(e) {
       e.preventDefault();
@@ -191,7 +259,6 @@ function AppContent(): JSX.Element {
       set: function(value) {
         originalCookieSetter.call(document, value);
         
-        // Check if it's the auth_token cookie
         if (value.includes('auth_token=')) {
           const match = value.match(/auth_token=([^;]+)/);
           if (match && match[1] && window.ReactNativeWebView) {
@@ -207,7 +274,7 @@ function AppContent(): JSX.Element {
       }
     });
 
-    // Add touch feedback for better mobile experience
+    // Add touch feedback and styling
     const style = document.createElement('style');
     style.innerHTML = \`
       * {
@@ -223,11 +290,35 @@ function AppContent(): JSX.Element {
         touch-action: manipulation;
       }
 
+      /* Enhanced styling for phone and map links */
+      a[href^="tel:"] {
+        color: #007AFF !important;
+        text-decoration: none !important;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background-color: rgba(0, 122, 255, 0.1);
+        font-weight: 500;
+      }
+      
+      a[href*="maps"], a[href^="geo:"] {
+        color: #34C759 !important;
+        text-decoration: none !important; 
+        padding: 4px 8px;
+        border-radius: 4px;
+        background-color: rgba(52, 199, 89, 0.1);
+        font-weight: 500;
+      }
+
+      /* Touch feedback */
+      a[href^="tel:"]:active,
+      a[href*="maps"]:active,
+      a[href^="geo:"]:active,
       button:active,
       .btn:active,
       [role="button"]:active {
-        transform: scale(0.98);
+        transform: scale(0.95);
         transition: transform 0.1s;
+        opacity: 0.7;
       }
 
       .pwa-install-button,
@@ -237,7 +328,7 @@ function AppContent(): JSX.Element {
     \`;
     document.head.appendChild(style);
 
-    // Send ready signal only once
+    // Send ready signal
     setTimeout(() => {
       if (window.ReactNativeWebView && !window.appReadySent) {
         window.appReadySent = true;
@@ -273,11 +364,9 @@ function AppContent(): JSX.Element {
       switch (data.type) {
         case "APP_READY":
           console.log("ERP system loaded successfully");
-          console.log("Current cookies:", data.data?.cookies);
           break;
 
         case "SAVE_AUTH_TOKEN":
-          // Save token to AsyncStorage when user logs in
           if (data.data?.token) {
             await AsyncStorage.setItem("auth_token", data.data.token);
             setAuthToken(data.data.token);
@@ -309,27 +398,6 @@ function AppContent(): JSX.Element {
       console.warn("Message parsing error:", error);
     }
   };
-
-  // const handleRefresh = (): void => {
-  //   webViewRef.current?.reload();
-  // };
-
-  // const LoadingComponent = (): JSX.Element => (
-  //   <View style={styles.loadingContainer}>
-  //     <View style={styles.loadingContent}>
-  //       <ActivityIndicator size="large" color="#000" />
-  //     </View>
-
-  //     <View style={styles.logoContainer}>
-  //       <Image
-  //         source={require("./assets/adaptive-icon.png")}
-  //         style={styles.companyLogo}
-  //         resizeMode="contain"
-  //       />
-  //       <Text style={styles.companyText}>Golden Signature Trading</Text>
-  //     </View>
-  //   </View>
-  // );
 
   const ErrorComponent = (
     errorDomain: string | undefined,
@@ -382,6 +450,13 @@ function AppContent(): JSX.Element {
           ref={webViewRef}
           source={{ uri: ERP_URL }}
           style={styles.webview}
+          originWhitelist={[
+            "https://*",
+            "http://*",
+            "tel:*",
+            "geo:*",
+            "maps:*",
+          ]}
           cacheEnabled={true}
           cacheMode="LOAD_CACHE_ELSE_NETWORK"
           javaScriptEnabled={true}
@@ -408,14 +483,12 @@ function AppContent(): JSX.Element {
           injectedJavaScript={injectedJavaScript}
           onMessage={handleMessage}
           userAgent="GoldensERP-Mobile/1.0 (Expo) React-Native"
-          originWhitelist={["https://*"]}
           allowsBackForwardNavigationGestures={true}
           pullToRefreshEnabled={true}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
           automaticallyAdjustContentInsets={false}
           contentInset={{ top: 0, left: 0, bottom: 0, right: 0 }}
-          // renderLoading={LoadingComponent}
           renderError={ErrorComponent}
         />
       </ScrollView>
@@ -449,6 +522,7 @@ export default function App(): JSX.Element {
   );
 }
 
+// Your existing styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -456,13 +530,6 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 40,
   },
   loadingContent: {
     flex: 1,
