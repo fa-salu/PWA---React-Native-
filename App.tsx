@@ -10,6 +10,8 @@ import {
   Platform,
   Image,
   ActivityIndicator,
+  ScrollView,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -37,6 +39,7 @@ function AppContent(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [canGoBack, setCanGoBack] = useState<boolean>(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   // Load auth token from AsyncStorage on mount
   useEffect(() => {
@@ -78,12 +81,20 @@ function AppContent(): JSX.Element {
     }
   }, [canGoBack]);
 
+  const handleRefresh = (): void => {
+    setRefreshing(true);
+    webViewRef.current?.reload();
+    // Auto-stop refreshing after 2 seconds
+    setTimeout(() => setRefreshing(false), 2000);
+  };
+
   const handleNavigationStateChange = (navState: WebViewNavigation): void => {
     setCanGoBack(navState.canGoBack);
   };
 
   const handleLoadEnd = (): void => {
     setIsLoading(false);
+    setRefreshing(false);
     SplashScreen.hideAsync();
 
     // Inject saved auth token into WebView cookies after load
@@ -299,26 +310,26 @@ function AppContent(): JSX.Element {
     }
   };
 
-  const handleRefresh = (): void => {
-    webViewRef.current?.reload();
-  };
+  // const handleRefresh = (): void => {
+  //   webViewRef.current?.reload();
+  // };
 
-  const LoadingComponent = (): JSX.Element => (
-    <View style={styles.loadingContainer}>
-      <View style={styles.loadingContent}>
-        <ActivityIndicator size="large" color="#000" />
-      </View>
+  // const LoadingComponent = (): JSX.Element => (
+  //   <View style={styles.loadingContainer}>
+  //     <View style={styles.loadingContent}>
+  //       <ActivityIndicator size="large" color="#000" />
+  //     </View>
 
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("./assets/adaptive-icon.png")}
-          style={styles.companyLogo}
-          resizeMode="contain"
-        />
-        <Text style={styles.companyText}>Golden Signature Trading</Text>
-      </View>
-    </View>
-  );
+  //     <View style={styles.logoContainer}>
+  //       <Image
+  //         source={require("./assets/adaptive-icon.png")}
+  //         style={styles.companyLogo}
+  //         resizeMode="contain"
+  //       />
+  //       <Text style={styles.companyText}>Golden Signature Trading</Text>
+  //     </View>
+  //   </View>
+  // );
 
   const ErrorComponent = (
     errorDomain: string | undefined,
@@ -352,47 +363,62 @@ function AppContent(): JSX.Element {
         backgroundColor="#FEFAF1"
         translucent={false}
       />
-
-      <WebView
-        ref={webViewRef}
-        source={{ uri: ERP_URL }}
+      <ScrollView
         style={styles.webview}
-        cacheEnabled={true}
-        cacheMode="LOAD_CACHE_ELSE_NETWORK"
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        sharedCookiesEnabled={true}
-        thirdPartyCookiesEnabled={true}
-        incognito={false}
-        allowsInlineMediaPlayback={true}
-        mediaPlaybackRequiresUserAction={false}
-        mixedContentMode="compatibility"
-        startInLoadingState={true}
-        onLoadEnd={handleLoadEnd}
-        onError={handleError}
-        onHttpError={(syntheticEvent) => {
-          const { nativeEvent } = syntheticEvent;
-          console.warn(
-            "HTTP Error:",
-            nativeEvent.statusCode,
-            nativeEvent.description
-          );
-        }}
-        onNavigationStateChange={handleNavigationStateChange}
-        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-        injectedJavaScript={injectedJavaScript}
-        onMessage={handleMessage}
-        userAgent="GoldensERP-Mobile/1.0 (Expo) React-Native"
-        originWhitelist={["https://*"]}
-        allowsBackForwardNavigationGestures={true}
-        pullToRefreshEnabled={true}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        automaticallyAdjustContentInsets={false}
-        contentInset={{ top: 0, left: 0, bottom: 0, right: 0 }}
-        renderLoading={LoadingComponent}
-        renderError={ErrorComponent}
-      />
+        contentContainerStyle={{ flex: 1 }}
+        scrollEnabled={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#000"
+            title="Refreshing..."
+            titleColor="#000"
+            colors={["#1976D2"]}
+          />
+        }
+      >
+        <WebView
+          ref={webViewRef}
+          source={{ uri: ERP_URL }}
+          style={styles.webview}
+          cacheEnabled={true}
+          cacheMode="LOAD_CACHE_ELSE_NETWORK"
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          sharedCookiesEnabled={true}
+          thirdPartyCookiesEnabled={true}
+          incognito={false}
+          allowsInlineMediaPlayback={true}
+          mediaPlaybackRequiresUserAction={false}
+          mixedContentMode="compatibility"
+          startInLoadingState={true}
+          onLoadEnd={handleLoadEnd}
+          onError={handleError}
+          onHttpError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.warn(
+              "HTTP Error:",
+              nativeEvent.statusCode,
+              nativeEvent.description
+            );
+          }}
+          onNavigationStateChange={handleNavigationStateChange}
+          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          injectedJavaScript={injectedJavaScript}
+          onMessage={handleMessage}
+          userAgent="GoldensERP-Mobile/1.0 (Expo) React-Native"
+          originWhitelist={["https://*"]}
+          allowsBackForwardNavigationGestures={true}
+          pullToRefreshEnabled={true}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          automaticallyAdjustContentInsets={false}
+          contentInset={{ top: 0, left: 0, bottom: 0, right: 0 }}
+          // renderLoading={LoadingComponent}
+          renderError={ErrorComponent}
+        />
+      </ScrollView>
 
       {isLoading && (
         <View style={styles.loadingOverlay}>
