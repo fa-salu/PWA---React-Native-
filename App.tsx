@@ -27,7 +27,9 @@ import { printHandler } from "./src/utils/printHandler";
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
+// Production URL
 // const ERP_URL = "https://web.goldensignaturetrading.com";
+// Development URL
 const ERP_URL = "https://goldensignature-one.vercel.app";
 
 interface WebViewMessage {
@@ -124,14 +126,7 @@ function AppContent(): JSX.Element {
   const handleError = (error: any): void => {
     console.error("WebView Error:", error);
     setRefreshing(false);
-    Alert.alert(
-      "Connection Error",
-      "Failed to load the ERP system. Please check your internet connection.",
-      [
-        { text: "Retry", onPress: () => webViewRef.current?.reload() },
-        { text: "Cancel" },
-      ]
-    );
+    setIsLoading(false);
   };
 
   const handleShouldStartLoadWithRequest = (request: any): boolean => {
@@ -399,31 +394,6 @@ function AppContent(): JSX.Element {
     }
   };
 
-  const ErrorComponent = (
-    errorDomain: string | undefined,
-    errorCode: number,
-    errorDesc: string
-  ): JSX.Element => (
-    <View style={styles.errorContainer}>
-      <View style={styles.errorContent}>
-        <Text style={styles.errorText}>Connection Error</Text>
-        <Text style={styles.errorDesc}>{errorDesc}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.logoContainer}>
-        <Image
-          source={require("./assets/adaptive-icon.png")}
-          style={styles.companyLogo}
-          resizeMode="contain"
-        />
-        <Text style={styles.companyText}>Golden Signature Trading</Text>
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar
@@ -489,7 +459,6 @@ function AppContent(): JSX.Element {
           showsVerticalScrollIndicator={false}
           automaticallyAdjustContentInsets={false}
           contentInset={{ top: 0, left: 0, bottom: 0, right: 0 }}
-          renderError={ErrorComponent}
         />
       </ScrollView>
 
@@ -522,7 +491,6 @@ export default function App(): JSX.Element {
   );
 }
 
-// Your existing styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -551,53 +519,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginTop: 10,
-  },
-  errorContainer: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-  },
-  errorContent: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#d32f2f",
-    marginBottom: 10,
-  },
-  errorDesc: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  retryButton: {
-    backgroundColor: "#1976D2",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  retryButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
   },
   logoContainer: {
     alignItems: "center",
